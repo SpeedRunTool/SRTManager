@@ -1,18 +1,5 @@
 #include "Helpers.h"
 
-void SRTMGR::DrawFPSText(void)
-{
-	static const float halfCharSize = ImGui::CalcTextSize(" ").x / 2.f;
-	ImGuiIO &io = ImGui::GetIO();
-	const char fpsFormat[] = "Application average %.3f ms/frame (%.1f FPS)";
-
-	std::unique_ptr<std::string> fpsFormattedText = GetPrintfFormattedString(fpsFormat, 1000.0f / io.Framerate, io.Framerate);
-	ImVec2 fpsTextSize = ImGui::CalcTextSize(fpsFormattedText.get()->c_str());
-
-	ImGui::SameLine(ImGui::GetWindowWidth() - (fpsTextSize.x + halfCharSize));
-	ImGui::Text("%s", fpsFormattedText.get()->c_str());
-}
-
 std::unique_ptr<std::string> SRTMGR::GetPrintfFormattedString(const char *fmt, ...)
 {
 	va_list args;
@@ -27,4 +14,20 @@ std::unique_ptr<std::string> SRTMGR::GetPrintfFormattedString(const char *fmt, .
 	va_end(args);
 
 	return returnValue;
+}
+
+void SRTMGR::ImGuiExt::RightJustify(std::string &text)
+{
+	static const float halfCharSize = ImGui::CalcTextSize(" ").x / 2.f;
+	ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
+	ImGui::SameLine(ImGui::GetWindowWidth() - (textSize.x + halfCharSize));
+}
+
+void SRTMGR::ImGuiExt::DrawFPSText(void)
+{
+	ImGuiIO &io = ::ImGui::GetIO();
+	const char fpsFormat[] = "Application average %.3f ms/frame (%.1f FPS)";
+	std::unique_ptr<std::string> fpsFormattedText = GetPrintfFormattedString(fpsFormat, 1000.0f / io.Framerate, io.Framerate);
+	RightJustify(*fpsFormattedText.get());
+	ImGui::Text("%s", fpsFormattedText.get()->c_str());
 }

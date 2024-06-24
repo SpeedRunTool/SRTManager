@@ -1,5 +1,137 @@
 #include "UI.h"
 
+void __stdcall SRTMGR::UI::DrawMainUI(bool &open)
+{
+	// If the Main UI is hidden, exit here.
+	if (!open)
+		return;
+
+	// Conditionally shown items (shown only if the Main UI is showing)
+	if (show_Debug_ImGuiDemo)
+		ImGui::ShowDemoWindow(&show_Debug_ImGuiDemo);
+
+	if (show_Help_About)
+		DrawHelpAboutUI(show_Help_About);
+
+	// Specify a default position/size in case there's no data in the .ini file.
+	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
+
+	if (!ImGui::Begin(SRTMGR_APP_NAME, (bool *)&open, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoCollapse))
+	{
+		ImGui::End();
+		return;
+	}
+
+	// Menu Bar
+	if (ImGui::BeginMenuBar())
+	{
+		if (ImGui::BeginMenu("File"))
+		{
+			if (ImGui::MenuItem("Exit", NULL, false, true))
+				open = !open;
+			ImGui::EndMenu();
+		}
+
+		if (IsDebug)
+		{
+			if (ImGui::BeginMenu("Debug"))
+			{
+				ImGui::MenuItem("ImGui Demo", NULL, &show_Debug_ImGuiDemo);
+				ImGui::EndMenu();
+			}
+		}
+
+		if (ImGui::BeginMenu("Help"))
+		{
+			ImGui::MenuItem("About", NULL, &show_Help_About);
+			ImGui::EndMenu();
+		}
+		ImGui::EndMenuBar();
+	}
+
+	if (IsDebug)
+		SRTMGR::ImGuiExt::DrawFPSText();
+	ImGui::End();
+}
+
+void __stdcall SRTMGR::UI::DrawHelpAboutUI(const bool &open)
+{
+	// Specify a default position/size in case there's no data in the .ini file.
+	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
+
+	if (!ImGui::Begin("About", (bool *)&open, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::End();
+		return;
+	}
+
+	ImGui::Text(SRTMGR_APP_NAME);
+	ImGui::Text("v%d.%d.%d (Build #%d)", SRTMGR_VERSION_MAJOR, SRTMGR_VERSION_MINOR, SRTMGR_VERSION_PATCH, SRTMGR_VERSION_BUILD);
+	ImGui::Separator();
+	ImGui::BulletText("Contributors\n\tSquirrelies");
+	ImGui::Spacing();
+	ImGui::Spacing();
+	bool copyToClipboard = ImGui::Button("Copy to clipboard");
+	ImGui::Spacing();
+	if (ImGui::BeginChild("buildInfo", ImVec2(0, 0), ImGuiChildFlags_FrameStyle | ImGuiChildFlags_AutoResizeX | ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		if (copyToClipboard)
+		{
+			ImGui::LogToClipboard();
+			ImGui::LogText("```\n"); // Back quotes will make text appears without formatting when pasting on GitHub
+		}
+
+		ImGui::Text(SRTMGR_APP_NAME);
+		ImGui::Text("v%d.%d.%d (Build #%d)", SRTMGR_VERSION_MAJOR, SRTMGR_VERSION_MINOR, SRTMGR_VERSION_PATCH, SRTMGR_VERSION_BUILD);
+		ImGui::Separator();
+		ImGui::Text("Build datetime: %s %s", __DATE__, __TIME__);
+		ImGui::Text("Debug build: %s", IsDebug ? "true" : "false");
+		ImGui::Text("sizeof(void *): %d", (int)sizeof(void *));
+#ifdef _WIN32
+		ImGui::Text("define: _WIN32");
+#endif
+#ifdef _WIN64
+		ImGui::Text("define: _WIN64");
+#endif
+		ImGui::Text("define: __cplusplus=%d", (int)__cplusplus);
+#ifdef __STDC__
+		ImGui::Text("define: __STDC__=%d", (int)__STDC__);
+#endif
+#ifdef __STDC_VERSION__
+		ImGui::Text("define: __STDC_VERSION__=%d", (int)__STDC_VERSION__);
+#endif
+#ifdef __GNUC__
+		ImGui::Text("define: __GNUC__=%d", (int)__GNUC__);
+#endif
+#ifdef __clang_version__
+		ImGui::Text("define: __clang_version__=%s", __clang_version__);
+#endif
+
+#ifdef _MSC_VER
+		ImGui::Text("define: _MSC_VER=%d", _MSC_VER);
+#endif
+#ifdef _MSVC_LANG
+		ImGui::Text("define: _MSVC_LANG=%d", (int)_MSVC_LANG);
+#endif
+#ifdef __MINGW32__
+		ImGui::Text("define: __MINGW32__");
+#endif
+#ifdef __MINGW64__
+		ImGui::Text("define: __MINGW64__");
+#endif
+
+		if (copyToClipboard)
+		{
+			ImGui::LogText("\n```");
+			ImGui::LogFinish();
+		}
+		ImGui::EndChild();
+	}
+
+	ImGui::End();
+}
+
 SRTMGR::UI::UI()
 {
 	// Setup SDL
@@ -146,137 +278,6 @@ void SRTMGR::UI::RenderLoop(void)
 		// g_pSwapChain->Present(1, 0); // Present with vsync
 		g_pSwapChain->Present(0, 0); // Present without vsync
 	}
-}
-
-void __stdcall SRTMGR::UI::DrawMainUI(bool &open)
-{
-	// If the Main UI is hidden, exit here.
-	if (!open)
-		return;
-
-	// Conditionally shown items (shown only if the Main UI is showing)
-	if (show_Debug_ImGuiDemo)
-		ImGui::ShowDemoWindow(&show_Debug_ImGuiDemo);
-
-	if (show_Help_About)
-		DrawHelpAboutUI(show_Help_About);
-
-	// Specify a default position/size in case there's no data in the .ini file.
-	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
-	ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
-
-	if (!ImGui::Begin(SRTMGR_APP_NAME, (bool *)&open, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoCollapse))
-	{
-		ImGui::End();
-		return;
-	}
-
-	// Menu Bar
-	if (ImGui::BeginMenuBar())
-	{
-		if (ImGui::BeginMenu("File"))
-		{
-			if (ImGui::MenuItem("Exit", NULL, false, true))
-				open = !open;
-			ImGui::EndMenu();
-		}
-
-		if (IsDebug)
-		{
-			if (ImGui::BeginMenu("Debug"))
-			{
-				ImGui::MenuItem("ImGui Demo", NULL, &show_Debug_ImGuiDemo);
-				ImGui::EndMenu();
-			}
-		}
-
-		if (ImGui::BeginMenu("Help"))
-		{
-			ImGui::MenuItem("About", NULL, &show_Help_About);
-			ImGui::EndMenu();
-		}
-		ImGui::EndMenuBar();
-	}
-
-	SRTMGR::DrawFPSText();
-	ImGui::End();
-}
-
-void __stdcall SRTMGR::UI::DrawHelpAboutUI(const bool &open)
-{
-	// Specify a default position/size in case there's no data in the .ini file.
-	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
-
-	if (!ImGui::Begin("About", (bool *)&open, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize))
-	{
-		ImGui::End();
-		return;
-	}
-
-	ImGui::Text(SRTMGR_APP_NAME);
-	ImGui::Text("v%d.%d.%d (Build #%d)", SRTMGR_VERSION_MAJOR, SRTMGR_VERSION_MINOR, SRTMGR_VERSION_PATCH, SRTMGR_VERSION_BUILD);
-	ImGui::Separator();
-	ImGui::BulletText("Contributors\n\tSquirrelies");
-	ImGui::Spacing();
-	ImGui::Spacing();
-	bool copyToClipboard = ImGui::Button("Copy to clipboard");
-	ImGui::Spacing();
-	if (ImGui::BeginChild("buildInfo", ImVec2(0, 0), ImGuiChildFlags_FrameStyle | ImGuiChildFlags_AutoResizeX | ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize))
-	{
-		if (copyToClipboard)
-		{
-			ImGui::LogToClipboard();
-			ImGui::LogText("```\n"); // Back quotes will make text appears without formatting when pasting on GitHub
-		}
-
-		ImGui::Text(SRTMGR_APP_NAME);
-		ImGui::Text("v%d.%d.%d (Build #%d)", SRTMGR_VERSION_MAJOR, SRTMGR_VERSION_MINOR, SRTMGR_VERSION_PATCH, SRTMGR_VERSION_BUILD);
-		ImGui::Separator();
-		ImGui::Text("Build datetime: %s %s", __DATE__, __TIME__);
-		ImGui::Text("Debug build: %s", IsDebug ? "true" : "false");
-		ImGui::Text("sizeof(void *): %d", (int)sizeof(void *));
-#ifdef _WIN32
-		ImGui::Text("define: _WIN32");
-#endif
-#ifdef _WIN64
-		ImGui::Text("define: _WIN64");
-#endif
-		ImGui::Text("define: __cplusplus=%d", (int)__cplusplus);
-#ifdef __STDC__
-		ImGui::Text("define: __STDC__=%d", (int)__STDC__);
-#endif
-#ifdef __STDC_VERSION__
-		ImGui::Text("define: __STDC_VERSION__=%d", (int)__STDC_VERSION__);
-#endif
-#ifdef __GNUC__
-		ImGui::Text("define: __GNUC__=%d", (int)__GNUC__);
-#endif
-#ifdef __clang_version__
-		ImGui::Text("define: __clang_version__=%s", __clang_version__);
-#endif
-
-#ifdef _MSC_VER
-		ImGui::Text("define: _MSC_VER=%d", _MSC_VER);
-#endif
-#ifdef _MSVC_LANG
-		ImGui::Text("define: _MSVC_LANG=%d", (int)_MSVC_LANG);
-#endif
-#ifdef __MINGW32__
-		ImGui::Text("define: __MINGW32__");
-#endif
-#ifdef __MINGW64__
-		ImGui::Text("define: __MINGW64__");
-#endif
-
-		if (copyToClipboard)
-		{
-			ImGui::LogText("\n```");
-			ImGui::LogFinish();
-		}
-		ImGui::EndChild();
-	}
-
-	ImGui::End();
 }
 
 bool SRTMGR::UI::CreateDeviceD3D(HWND hWnd)

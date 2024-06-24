@@ -8,8 +8,13 @@
 
 namespace SRTMGR
 {
-	std::unique_ptr<std::string> GetPrintfFormattedString(const char *fmt, ...);
-	void DrawFPSText(void);
+	std::unique_ptr<std::string> GetPrintfFormattedString(const char *, ...);
+
+	namespace ImGuiExt
+	{
+		void RightJustify(std::string &);
+		void DrawFPSText(void);
+	}
 }
 
 #endif
