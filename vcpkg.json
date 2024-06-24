@@ -1,0 +1,15 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+    "dependencies": [
+        "gtest",
+        "sdl2",
+        {
+            "name": "imgui",
+            "features": [
+                "dx11-binding",
+                "sdl2-binding",
+                "docking-experimental"
+            ]
+        }
+    ]
+}
